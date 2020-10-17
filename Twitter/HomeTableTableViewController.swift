@@ -14,13 +14,21 @@ class HomeTableTableViewController: UITableViewController {
     let myRefreshControl = UIRefreshControl()
     override func viewDidLoad() {
         super.viewDidLoad()
+        tableView.rowHeight = UITableView.automaticDimension
+        tableView.estimatedRowHeight = 200
         loadTweets()
         myRefreshControl.addTarget(self, action: #selector(loadTweets), for: .valueChanged)
-        tableView.refreshControl = refreshControl
+        tableView.refreshControl = myRefreshControl
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        loadTweets()
+        print("View did appear")
     }
     
     @objc func loadTweets() {
-        numberOfTweets = 30
+        numberOfTweets = 20
         let myUrl = "https://api.twitter.com/1.1/statuses/home_timeline.json"
         let myParams = ["count": numberOfTweets]
         
@@ -32,12 +40,12 @@ class HomeTableTableViewController: UITableViewController {
             self.tableView.reloadData()
             self.myRefreshControl.endRefreshing()
         }, failure: { (Error) in
-            print("could not recieve Tweets")
+            print("could not recieve Tweets \(Error)")
         })
     }
 
     func loadMoreTweets() {
-        numberOfTweets += 20
+        numberOfTweets += 10
         let myUrl = "https://api.twitter.com/1.1/statuses/home_timeline.json"
         let myParams = ["count":numberOfTweets]
         
@@ -60,10 +68,13 @@ class HomeTableTableViewController: UITableViewController {
         let profileUrl = user["profile_image_url_https"] as! String
         let imageUrl = URL(string: profileUrl)
         let data = try? Data(contentsOf: imageUrl!)
-        
         if let imageData = data {
             cell.profileImageView.image = UIImage(data:imageData)
         }
+        cell.setfavorite(tweetsArray[indexPath.row]["favorited"] as! Bool)
+        cell.tweetId = tweetsArray[indexPath.row]["id"] as! Int
+        
+        cell.setretweet(tweetsArray[indexPath.row]["retweeted"] as! Bool)
         return cell
     }
 
